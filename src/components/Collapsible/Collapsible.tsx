@@ -31,15 +31,16 @@ export function Collapsible({
   transition,
   children,
 }: CollapsibleProps) {
-  const [height, setHeight] = useState<number | null>(null);
-  const [isOpen, setIsOpen] = useState(open);
+  const isOpen = useRef(open);
+  const [height, setHeight] = useState(0);
   const collapisbleContainer = useRef<HTMLDivElement>(null);
+
+  const isClosing = !open;
 
   const wrapperClassName = classNames(
     styles.Collapsible,
     expandOnPrint && styles.expandOnPrint,
     isOpen && styles.open,
-    height && styles.animating,
   );
 
   const collapsibleStyles = {
@@ -47,42 +48,26 @@ export function Collapsible({
       transitionDuration: `${transition.duration}`,
       transitionTimingFunction: `${transition.timingFunction}`,
     }),
-    ...(typeof height === 'number' && {
+    ...{
       height: `${height}px`,
       overflow: 'hidden',
-    }),
+    },
   };
 
   // When animation is complete clean up
   const handleCompleteAnimation = () => {
-    setHeight(null);
-    setIsOpen(open);
+    if (!collapisbleContainer.current) return;
+    setHeight(isClosing ? 0 : collapisbleContainer.current.scrollHeight);
+    isOpen.current = open;
   };
 
   // Measure the child height for open and close
   useEffect(() => {
-    if (open === isOpen || !collapisbleContainer.current) {
-      return;
-    }
-
-    setHeight(collapisbleContainer.current.scrollHeight);
-  }, [open, isOpen]);
-
-  // If closing, set the height zero on the next render
-  useEffect(() => {
-    if (open || height === null || !collapisbleContainer.current) {
-      return;
-    }
-
-    // If it is currently animating put it back to zero
-    if (height !== collapisbleContainer.current.scrollHeight) {
-      setHeight(0);
-      return;
-    }
-
-    getComputedStyle(collapisbleContainer.current).height;
-    setHeight(0);
-  }, [height, open]);
+    requestAnimationFrame(() => {
+      if (!collapisbleContainer.current) return;
+      setHeight(isClosing ? 0 : collapisbleContainer.current.scrollHeight);
+    });
+  }, [isClosing, isOpen, open]);
 
   return (
     <div
