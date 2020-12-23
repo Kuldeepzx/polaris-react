@@ -31,16 +31,19 @@ export function Collapsible({
   transition,
   children,
 }: CollapsibleProps) {
-  const isOpen = useRef(open);
+  const [isOpen, setIsOpen] = useState(open);
   const [height, setHeight] = useState(0);
   const collapisbleContainer = useRef<HTMLDivElement>(null);
 
   const isClosing = !open;
+  const isPartiallyOpen = open || isOpen;
+  const isFullyClosed = !open && !isOpen;
+  const isFullyOpen = open && isOpen;
 
   const wrapperClassName = classNames(
     styles.Collapsible,
     expandOnPrint && styles.expandOnPrint,
-    isOpen && styles.open,
+    (isPartiallyOpen || isFullyOpen) && styles.open,
   );
 
   const collapsibleStyles = {
@@ -48,23 +51,25 @@ export function Collapsible({
       transitionDuration: `${transition.duration}`,
       transitionTimingFunction: `${transition.timingFunction}`,
     }),
-    ...{
-      height: `${height}px`,
-      overflow: 'hidden',
-    },
+    ...(isFullyOpen && {
+      height: 'auto',
+      overflow: 'visible',
+    }),
+    ...(isPartiallyOpen &&
+      !isFullyOpen && {
+        height: `${height}px`,
+        overflow: 'hidden',
+      }),
   };
 
-  // When animation is complete clean up
   const handleCompleteAnimation = () => {
-    if (!collapisbleContainer.current) return;
-    setHeight(isClosing ? 0 : collapisbleContainer.current.scrollHeight);
-    isOpen.current = open;
+    setIsOpen(open);
   };
 
-  // Measure the child height for open and close
   useEffect(() => {
     requestAnimationFrame(() => {
       if (!collapisbleContainer.current) return;
+
       setHeight(isClosing ? 0 : collapisbleContainer.current.scrollHeight);
     });
   }, [isClosing, isOpen, open]);
@@ -76,7 +81,7 @@ export function Collapsible({
       className={wrapperClassName}
       onTransitionEnd={() => handleCompleteAnimation()}
       ref={collapisbleContainer}
-      // aria-hidden={!open && !isOpen}
+      aria-hidden={isFullyClosed}
     >
       {children}
     </div>
