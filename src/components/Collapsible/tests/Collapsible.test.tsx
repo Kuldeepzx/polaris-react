@@ -1,69 +1,71 @@
 import React from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {mountWithAppProvider} from 'test-utilities/legacy';
+import {mountWithApp} from 'test-utilities';
 import {Tokens} from 'utilities/theme';
 
 import {Collapsible} from '../Collapsible';
 
 describe('<Collapsible />', () => {
-  const ariaHiddenSelector = '[aria-hidden=true]';
-
   it('does not render its children and indicates hidden with aria-hidden', () => {
-    const collapsible = mountWithAppProvider(
+    const collapsible = mountWithApp(
       <Collapsible id="test-collapsible" open={false}>
         content
       </Collapsible>,
     );
 
-    const hidden = collapsible.find(ariaHiddenSelector);
-    expect(hidden.exists()).toBe(true);
+    expect(collapsible).toContainReactComponent('div', {'aria-hidden': true});
   });
 
   it('renders its children and does not render aria-hidden when open', () => {
-    const collapsible = mountWithAppProvider(
+    const collapsible = mountWithApp(
       <Collapsible id="test-collapsible" open>
         content
       </Collapsible>,
     );
 
-    const hidden = collapsible.find(ariaHiddenSelector);
-    expect(hidden.exists()).toBe(false);
-    expect(collapsible.contains('content')).toBe(true);
+    expect(collapsible).toContainReactComponent('div', {'aria-hidden': false});
+    expect(collapsible).toContainReactText('content');
   });
 
   it('renders its children when expandOnPrint is true and open is false', () => {
-    const collapsible = mountWithAppProvider(
+    const collapsible = mountWithApp(
       <Collapsible id="test-collapsible" open={false} expandOnPrint>
         content
       </Collapsible>,
     );
 
-    expect(collapsible.contains('content')).toBe(true);
+    expect(collapsible).toContainReactText('content');
   });
 
   it('renders its children when expandOnPrint is true and open is true', () => {
-    const collapsible = mountWithAppProvider(
+    const collapsible = mountWithApp(
       <Collapsible id="test-collapsible" open expandOnPrint>
         content
       </Collapsible>,
     );
 
-    expect(collapsible.contains('content')).toBe(true);
+    expect(collapsible).toContainReactText('content');
   });
 
   describe('Transition', () => {
     it('passes a duration property', () => {
       const duration = Tokens.duration150;
-      const collapsible = mountWithAppProvider(
+      const collapsible = mountWithApp(
         <Collapsible id="test-collapsible" open transition={{duration}} />,
       );
 
-      expect(collapsible.props()).toMatchObject({transition: {duration}});
+      expect(collapsible).toContainReactComponent('div', {
+        style: {
+          height: 'auto',
+          overflow: 'visible',
+          transitionTimingFunction: 'undefined',
+          transitionDuration: duration,
+        },
+      });
     });
 
     it('passes a timingFunction property', () => {
       const timingFunction = Tokens.ease;
-      const collapsible = mountWithAppProvider(
+      const collapsible = mountWithApp(
         <Collapsible
           id="test-collapsible"
           open
@@ -71,7 +73,14 @@ describe('<Collapsible />', () => {
         />,
       );
 
-      expect(collapsible.props()).toMatchObject({transition: {timingFunction}});
+      expect(collapsible).toContainReactComponent('div', {
+        style: {
+          height: 'auto',
+          overflow: 'visible',
+          transitionTimingFunction: timingFunction,
+          transitionDuration: 'undefined',
+        },
+      });
     });
   });
 });
