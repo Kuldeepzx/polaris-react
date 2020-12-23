@@ -36,30 +36,33 @@ export function Collapsible({
   const collapisbleContainer = useRef<HTMLDivElement>(null);
 
   const isClosing = !open;
-  const isPartiallyOpen = open || isOpen;
-  const isFullyClosed = !open && !isOpen;
+  const isAnimating = open || isOpen;
   const isFullyOpen = open && isOpen;
+  const isFullyClosed = !isFullyOpen;
 
   const wrapperClassName = classNames(
     styles.Collapsible,
     expandOnPrint && styles.expandOnPrint,
-    (isPartiallyOpen || isFullyOpen) && styles.open,
+    (isAnimating || isFullyOpen) && styles.open,
   );
+
+  const fullyOpenStyles = isFullyOpen && {
+    height: 'auto',
+    overflow: 'visible',
+  };
+
+  const partiallyOpenStyles = isAnimating && {
+    height: `${height}px`,
+    overflow: 'hidden',
+  };
 
   const collapsibleStyles = {
     ...(transition && {
       transitionDuration: `${transition.duration}`,
       transitionTimingFunction: `${transition.timingFunction}`,
     }),
-    ...(isFullyOpen && {
-      height: 'auto',
-      overflow: 'visible',
-    }),
-    ...(isPartiallyOpen &&
-      !isFullyOpen && {
-        height: `${height}px`,
-        overflow: 'hidden',
-      }),
+    ...partiallyOpenStyles,
+    ...fullyOpenStyles,
   };
 
   const handleCompleteAnimation = () => {
